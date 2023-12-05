@@ -1,0 +1,84 @@
+//check out circuit board on my youtube channel #RuCodee
+//creating a safe box using three buttons, 2 LEDs, and Array to store the pin.
+//three buttons are used to insert the pin. Pin is 2311.
+//on the wrong password, red led is turned On while on the correct password the green led is turned On.
+
+const int button1Pin = 2;  // Button 1 pin
+const int button2Pin = 3;  // Button 2 pin
+const int button3Pin = 4;  // Button 3 pin
+const int redLedPin = 5;   // Red LED pin
+const int greenLedPin = 6; // Green LED pin
+
+const int secretPin[4] = {2, 3, 1, 1}; // Secret pin
+int enteredPin[4]; // Array to store entered pin
+int pinIndex = 0;  // Index to track pin entry
+
+void setup() {
+  pinMode(button1Pin, INPUT);
+  pinMode(button2Pin, INPUT);
+  pinMode(button3Pin, INPUT);
+  pinMode(redLedPin, OUTPUT);
+  pinMode(greenLedPin, OUTPUT);
+
+  Serial.begin(9600);
+  promptForPin();
+}
+
+void loop() { //function to digit the correct button
+  if (digitalRead(button1Pin) == HIGH) {
+    handleButtonPress(1);
+  } else if (digitalRead(button2Pin) == HIGH) {
+    handleButtonPress(2);
+  } else if (digitalRead(button3Pin) == HIGH) {
+    handleButtonPress(3);
+  }
+}
+
+void handleButtonPress(int buttonValue) { //handle button value
+  delay(200); // Debounce delay
+  enteredPin[pinIndex] = buttonValue;
+  Serial.println(buttonValue);
+  pinIndex++;
+
+  if (pinIndex == 4) { //if 4 digits are digited then check the pin
+    checkPin();
+    pinIndex = 0;
+    promptForPin();
+  }
+}
+
+void checkPin() { //function to check the password
+  Serial.println("Code entered, checking...");
+  delay(500);
+  if (arraysMatch()) { //check if array is matched
+    digitalWrite(greenLedPin, HIGH); //If matched turn on the green LED
+    Serial.println("Safe open"); //then print this message for 1sec
+    delay(1000);
+    digitalWrite(greenLedPin, LOW);
+  } else { //otherwise red LED blinks three times
+    for (int i = 0; i < 3; i++) {
+      digitalWrite(redLedPin, HIGH);
+      delay(150);
+      digitalWrite(redLedPin, LOW);
+      delay(150);
+    }
+    Serial.println("Invalid code");
+  }
+}
+
+bool arraysMatch() { //function to check the inserted password
+  for (int i = 0; i < 4; i++) { //check 4 digits
+    if (enteredPin[i] != secretPin[i]) { //if not equal return false
+      return false;
+    }
+  }
+  return true; //otherwise the digits (password) are correct
+}
+
+void promptForPin() { //start the code
+  digitalWrite(redLedPin, HIGH); 
+  delay(500);
+  digitalWrite(redLedPin, LOW);
+  delay(500);
+  Serial.println("Enter pin:");
+}
